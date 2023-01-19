@@ -82,7 +82,7 @@ if (cluster.isMaster) {
   // on connection, send the socket over to our module with socket stuff
   io.on("connection", function (socket) {
     socketMain(io, socket);
-    // console.log(`connected to worker: ${cluster.worker.id}`);
+    console.log(`connected to worker: ${cluster.worker.id}`);
   });
 
   //   socketMain(io, null);

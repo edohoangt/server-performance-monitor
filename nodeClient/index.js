@@ -1,4 +1,39 @@
 const os = require("os");
+const io = require("socket.io-client");
+let socket = io("http://127.0.0.1:8181");
+
+socket.on("connect", () => {
+  //   console.log("Connected to server.");
+
+  // identifier of this machine
+  const nI = os.networkInterfaces();
+  let macA;
+
+  for (let key in nI) {
+    if (!nI[key][0].internal) {
+      macA = nI[key][0].mac;
+      break;
+    }
+  }
+
+  socket.emit("clientAuth", "somesecureprivatekeyfornodeclient");
+
+  getPerformanceData().then((perfData) => {
+    perfData.macA = macA;
+    socket.emit("initPerfData", perfData);
+  });
+
+  let perfDataInterval = setInterval(() => {
+    getPerformanceData().then((perfData) => {
+      perfData.macA = macA;
+      socket.emit("perfData", perfData);
+    });
+  }, 1000);
+
+  socket.on("disconnect", () => {
+    clearInterval(perfDataInterval);
+  });
+});
 
 async function getPerformanceData() {
   return new Promise(async (resolve, reject) => {
@@ -82,6 +117,6 @@ function getCPULoad() {
  *  + Clock speed
  */
 
-getPerformanceData().then((perfData) => {
-  console.log(perfData);
-});
+// getPerformanceData().then((perfData) => {
+//   console.log(perfData);
+// });
