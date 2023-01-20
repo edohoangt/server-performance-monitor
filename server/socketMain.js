@@ -18,6 +18,14 @@ function socketMain(io, socket) {
       // valid UI
       console.log("A React client has joined.");
       socket.join("uiClients");
+
+      Machine.find({}, (err, docs) => {
+        docs.forEach((machine) => {
+          // on load, assume all machines are inactive
+          machine.isActive = false;
+          io.to("uiClients").emit("perfData", machine);
+        });
+      });
     } else {
       socket.disconnect(true);
     }
@@ -31,8 +39,17 @@ function socketMain(io, socket) {
   });
 
   socket.on("perfData", (perfData) => {
-    console.log(perfData);
+    // console.log(perfData);
     io.to("uiClients").emit("perfData", perfData);
+  });
+
+  socket.on("disconnect", () => {
+    Machine.find({ macA: macA }, (err, doc) => {
+      if (doc.length > 0) {
+        doc[0].isActive = false;
+        io.to("uiClients").emit("perfData", doc[0]);
+      }
+    });
   });
 }
 
